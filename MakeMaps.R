@@ -1,5 +1,6 @@
 # Load packages
 #source libraries
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source('librariesMinimal.R')
 
 #source local files
