@@ -25,11 +25,35 @@ LoadUK <- function(){
       mutate(date = as_date(date))
     return(data)
   }
-  cur_date <<- ymd(gsub("-", "", Sys.Date())) - 1
+  ## sometimes, date are outdated
+  error = NULL
+  n = 0
+  while(is.null(error)){
+    cur_date <<- ymd(gsub("-", "", Sys.Date())) - n
+    tryCatch({
+      data_cur <- dataQueryUK(as.Date(cur_date))
+      error = 'DONE'
+    }, error = function(cond){
+      warning(paste0("No data for ", cur_date))
+      error = NULL
+    })
+    n <- n + 1
+  }
   
-  data_cur <- dataQueryUK(cur_date)
-  past_date <- ymd(cur_date) - 14
-  data_past <- dataQueryUK(past_date)
+  error = NULL
+  n = 0
+  while(is.null(error)){
+    past_date <- ymd(cur_date) - 14 - n
+    data_past <- dataQueryUK(past_date)
+    tryCatch({
+      data_cur <- dataQueryUK(as.Date(cur_date))
+      error = 'DONE'
+    }, error = function(cond){
+      warning(paste0("No data for ", cur_date))
+      error = NULL
+    })
+    n <- n + 1
+  }
   for (i in c(1:13)) {
     data_cur <- data_cur %>% rbind(dataQueryUK(cur_date - i))
   }
@@ -91,4 +115,5 @@ LoadUK <- function(){
   UKMap$pInf = UKMap$Difference/UKMap$pop
   UK_DATA = subset(UKMap,select=c("DateReport","RegionName","Country","pInf","geometry"))
   return(UK_DATA)
-}
+  }
+  
